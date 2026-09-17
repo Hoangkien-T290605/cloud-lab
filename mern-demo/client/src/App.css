@@ -1,84 +1,690 @@
+/* =============================
+   RESET
+============================= */
+
 * {
     box-sizing: border-box;
 }
 
+html {
+    min-height: 100%;
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-}
+    min-height: 100vh;
 
-.container {
-    width: 90%;
-    max-width: 1000px;
-    margin: 40px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-h1 {
-    text-align: center;
+    background:
+        radial-gradient(
+            circle at top left,
+            #eee7ff 0%,
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #f3efff 0%,
+            #faf9ff 55%,
+            #eee8ff 100%
+        );
+
     color: #333;
 }
 
-h2 {
-    color: #444;
-    margin-top: 25px;
+
+/* =============================
+   MAIN CONTAINER
+============================= */
+
+.container {
+    width: 92%;
+    max-width: 1150px;
+
+    margin: 30px auto;
+
+    padding: 38px 34px 42px;
+
+    background: rgba(255, 255, 255, 0.97);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 45px rgba(91, 67, 160, 0.13),
+        0 2px 8px rgba(91, 67, 160, 0.06);
+
+    position: relative;
 }
+
+
+/* =============================
+   HEADER
+============================= */
+
+.page-header {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    margin-bottom: 28px;
+
+    position: relative;
+}
+
+
+/* =============================
+   GRADUATION ICON
+============================= */
+
+.graduation-icon {
+    width: 74px;
+    height: 74px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: #6545c6;
+
+    background: #f0eaff;
+
+    border-radius: 21px;
+
+    margin-bottom: 14px;
+
+    box-shadow:
+        0 8px 20px rgba(101, 69, 198, 0.12);
+}
+
+.graduation-icon svg {
+    width: 44px;
+    height: 44px;
+}
+
+
+/* =============================
+   HEADER TITLE
+============================= */
+
+.header-content {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.header-content h1 {
+    margin: 0;
+
+    color: #403477;
+
+    font-size: 42px;
+
+    font-weight: 750;
+
+    line-height: 1.2;
+
+    letter-spacing: -0.5px;
+}
+
+
+/* =============================
+   TITLE UNDERLINE
+============================= */
+
+.title-line {
+    width: 85px;
+    height: 4px;
+
+    margin-top: 14px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #6545c6,
+            #8060df
+        );
+}
+
+
+/* =============================
+   SECTION TITLE
+============================= */
+
+.section-title {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #5d43a5;
+
+    font-size: 23px;
+
+    margin: 0 0 19px;
+
+    font-weight: 700;
+}
+
+.section-title svg {
+    color: #7654d6;
+
+    flex-shrink: 0;
+}
+
+.list-title {
+    margin-bottom: 20px;
+}
+
+
+/* =============================
+   FORM
+============================= */
 
 form {
     display: flex;
+
     flex-direction: column;
+
     gap: 12px;
-    margin-bottom: 30px;
+
+    margin-bottom: 34px;
+
+    padding: 25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #faf8ff,
+            #f7f3ff
+        );
+
+    border: 1px solid #e7def9;
+
+    border-radius: 18px;
 }
 
-input {
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+
+/* =============================
+   INPUT
+============================= */
+
+.input-wrapper {
+    width: 100%;
+    height: 51px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    padding: 0 15px;
+
+    background: #ffffff;
+
+    border: 1px solid #ddd3f2;
+
+    border-radius: 11px;
+
+    color: #8b76c3;
+
+    transition: all 0.2s ease;
 }
 
-button {
-    padding: 10px 15px;
-    margin-right: 8px;
+.input-wrapper:hover {
+    border-color: #cbbce9;
+}
+
+.input-wrapper:focus-within {
+    border-color: #7956d6;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(121, 86, 214, 0.10);
+
+    transform: translateY(-1px);
+}
+
+.input-wrapper input {
+    flex: 1;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 0;
+
     border: none;
-    border-radius: 5px;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #393344;
+
+    font-size: 15px;
+}
+
+.input-wrapper input::placeholder {
+    color: #aaa4b7;
+}
+
+
+/* =============================
+   SUBMIT BUTTON
+============================= */
+
+.submit-button {
+    width: 100%;
+
+    min-height: 49px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    margin-top: 3px;
+
+    border: none;
+
+    border-radius: 11px;
+
     cursor: pointer;
-    background: #333;
+
     color: white;
-    font-size: 14px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #6545c6,
+            #8060df
+        );
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    box-shadow:
+        0 7px 16px
+        rgba(101, 69, 198, 0.18);
+
+    transition: all 0.2s ease;
 }
 
-button:hover {
-    opacity: 0.8;
+.submit-button:hover {
+    background:
+        linear-gradient(
+            90deg,
+            #5637ad,
+            #704fd0
+        );
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 9px 20px
+        rgba(101, 69, 198, 0.23);
 }
 
-button:disabled {
-    opacity: 0.5;
+.submit-button:disabled {
+    opacity: 0.6;
+
     cursor: not-allowed;
+
+    transform: none;
 }
+
+
+/* =============================
+   CANCEL BUTTON
+============================= */
+
+.cancel-button {
+    width: 100%;
+
+    min-height: 45px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-top: -3px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    cursor: pointer;
+
+    color: #6545c6;
+
+    background: #eee9fb;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+    background: #e2daf8;
+}
+
+
+/* =============================
+   STUDENT LIST
+============================= */
+
+.student-list {
+    margin-top: 5px;
+}
+
+.empty-message {
+    margin: 0;
+
+    padding: 25px;
+
+    text-align: center;
+
+    color: #817b91;
+
+    background: #faf8ff;
+
+    border: 1px dashed #d8cdf1;
+
+    border-radius: 12px;
+}
+
+
+/* =============================
+   TABLE WRAPPER
+============================= */
+
+.table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border: 1px solid #e2d9f5;
+
+    border-radius: 14px;
+
+    background: white;
+}
+
+
+/* =============================
+   TABLE
+============================= */
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+
+    border-collapse: separate;
+
+    border-spacing: 0;
+
+    overflow: hidden;
+
+    background: white;
 }
 
 th,
 td {
-    border: 1px solid #ddd;
-    padding: 12px;
+    padding: 14px 13px;
+
     text-align: center;
+
+    border-bottom: 1px solid #e9e4f1;
+
+    border-right: 1px solid #e9e4f1;
 }
 
 th {
-    background: #eee;
+    background: #eee9fb;
+
+    color: #57409a;
+
+    font-size: 14px;
+
+    font-weight: 700;
 }
 
-tr:nth-child(even) {
-    background: #f9f9f9;
+td {
+    color: #4f4a59;
+
+    font-size: 14.5px;
+}
+
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:nth-child(even) {
+    background: #fcfbff;
+}
+
+tbody tr:hover {
+    background: #f5f0ff;
+}
+
+
+/* =============================
+   ACTION CELL
+============================= */
+
+.action-cell {
+    min-width: 155px;
+}
+
+
+/* =============================
+   EDIT BUTTON
+============================= */
+
+.edit-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    min-width: 64px;
+
+    padding: 8px 11px;
+
+    margin: 0 3px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    color: white;
+
+    background: #6c4dcc;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+    background: #5537aa;
+
+    transform: translateY(-1px);
+}
+
+
+/* =============================
+   DELETE BUTTON
+============================= */
+
+.delete-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    min-width: 64px;
+
+    padding: 8px 11px;
+
+    margin: 0 3px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    color: white;
+
+    background: #e94b72;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+    background: #cc345b;
+
+    transform: translateY(-1px);
+}
+
+
+/* =============================
+   RESPONSIVE TABLET
+============================= */
+
+@media (max-width: 800px) {
+
+    .container {
+        width: 95%;
+
+        padding: 30px 22px 32px;
+
+        margin: 20px auto;
+    }
+
+    .header-content h1 {
+        font-size: 34px;
+    }
+
+    .graduation-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .graduation-icon svg {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+
+/* =============================
+   RESPONSIVE MOBILE
+============================= */
+
+@media (max-width: 600px) {
+
+    .container {
+        width: 96%;
+
+        padding: 24px 15px 28px;
+
+        margin: 15px auto;
+
+        border-radius: 18px;
+    }
+
+    .graduation-icon {
+        width: 64px;
+        height: 64px;
+
+        border-radius: 17px;
+
+        margin-bottom: 12px;
+    }
+
+    .graduation-icon svg {
+        width: 38px;
+        height: 38px;
+    }
+
+    .header-content h1 {
+        font-size: 29px;
+    }
+
+    .title-line {
+        width: 70px;
+
+        height: 3px;
+
+        margin-top: 11px;
+    }
+
+    form {
+        padding: 18px;
+    }
+
+    .section-title {
+        font-size: 19px;
+    }
+
+    th,
+    td {
+        padding: 11px 9px;
+
+        font-size: 12px;
+    }
+
+    .edit-button,
+    .delete-button {
+        min-width: 58px;
+
+        padding: 7px 8px;
+
+        font-size: 12px;
+    }
 }
