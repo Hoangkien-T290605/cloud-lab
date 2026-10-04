@@ -458,7 +458,7 @@ function App() {
                 <div className="header-content">
 
                     <h1>
-                        Quản lý sinh viên
+                        Quản lý sinh viên - Version 2.0
                     </h1>
 
                     <div className="title-line"></div>
