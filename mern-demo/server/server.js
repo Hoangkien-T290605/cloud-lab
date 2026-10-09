@@ -8,18 +8,31 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // =========================
-// CẤU HÌNH CORS
+// LOG REQUEST HTTP
+// Đặt trước CORS để ghi nhận cả request bị chặn
+// =========================
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
+  );
+  next();
+});
+
+// =========================
+// CẤU HÌNH CORS PRODUCTION
 // =========================
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:5173",
   "http://localhost:3000",
-].filter(Boolean).map((url) => url.trim().replace(/\/$/, ""));
+]
+  .filter(Boolean)
+  .map((url) => url.trim().replace(/\/$/, ""));
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Cho phép request không có Origin, ví dụ curl hoặc công cụ máy chủ.
+    origin: (origin, callback) => {
+      // Cho phép curl và request không có Origin
       if (!origin) {
         return callback(null, true);
       }
@@ -72,16 +85,6 @@ const Student =
   mongoose.model("Student", studentSchema);
 
 // =========================
-// LOG REQUEST HTTP
-// =========================
-app.use((req, res, next) => {
-  console.log(
-    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
-  );
-  next();
-});
-
-// =========================
 // ROUTE KIỂM TRA BACKEND
 // =========================
 app.get("/", (req, res) => {
@@ -97,7 +100,7 @@ app.get("/api/hello", (req, res) => {
 });
 
 // =========================
-// READ: LẤY DANH SÁCH
+// READ: LẤY DANH SÁCH SINH VIÊN
 // =========================
 app.get("/api/students", async (req, res) => {
   try {
@@ -119,9 +122,12 @@ app.post("/api/students", async (req, res) => {
     const { studentId, name, email } = req.body;
 
     if (
-      !studentId?.trim() ||
-      !name?.trim() ||
-      !email?.trim()
+      typeof studentId !== "string" ||
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      !studentId.trim() ||
+      !name.trim() ||
+      !email.trim()
     ) {
       return res.status(400).json({
         message: "Vui lòng nhập đầy đủ MSSV, họ tên và email.",
@@ -164,18 +170,32 @@ app.post("/api/students", async (req, res) => {
 app.put("/api/students/:id", async (req, res) => {
   try {
     const { name, email, studentId } = req.body;
-
     const updates = {};
 
     if (studentId !== undefined) {
+      if (typeof studentId !== "string" || !studentId.trim()) {
+        return res.status(400).json({
+          message: "MSSV không hợp lệ.",
+        });
+      }
       updates.studentId = studentId.trim();
     }
 
     if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({
+          message: "Họ tên không hợp lệ.",
+        });
+      }
       updates.name = name.trim();
     }
 
     if (email !== undefined) {
+      if (typeof email !== "string" || !email.trim()) {
+        return res.status(400).json({
+          message: "Email không hợp lệ.",
+        });
+      }
       updates.email = email.trim();
     }
 
@@ -236,7 +256,7 @@ app.delete("/api/students/:id", async (req, res) => {
 });
 
 // =========================
-// XỬ LÝ LỖI
+// XỬ LÝ LỖI CORS VÀ MÁY CHỦ
 // =========================
 app.use((err, req, res, next) => {
   if (err.message === "Not allowed by CORS") {
@@ -262,7 +282,6 @@ async function startServer() {
     }
 
     await mongoose.connect(process.env.MONGODB_URI);
-
     console.log("Đã kết nối MongoDB Atlas");
 
     app.listen(PORT, "0.0.0.0", () => {
