@@ -1,212 +1,278 @@
+
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
-const Student = require("./models/Student");
-
 const app = express();
-
-// =============================
-// Middleware
-// =============================
-app.use(cors());
-app.use(express.json());
-
-// =============================
-// Port
-// =============================
 const PORT = process.env.PORT || 5000;
 
-// =============================
-// Câu 22: API kiểm tra Backend
-// =============================
+// =========================
+// CẤU HÌNH CORS
+// =========================
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean).map((url) => url.trim().replace(/\/$/, ""));
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Cho phép request không có Origin, ví dụ curl hoặc công cụ máy chủ.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const normalizedOrigin = origin.replace(/\/$/, "");
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      console.error("CORS blocked origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json());
+
+// =========================
+// MODEL SINH VIÊN
+// =========================
+const studentSchema = new mongoose.Schema(
+  {
+    studentId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Student =
+  mongoose.models.Student ||
+  mongoose.model("Student", studentSchema);
+
+// =========================
+// LOG REQUEST HTTP
+// =========================
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
+  );
+  next();
+});
+
+// =========================
+// ROUTE KIỂM TRA BACKEND
+// =========================
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Backend MERN đang hoạt động!",
+  });
+});
+
 app.get("/api/hello", (req, res) => {
-    res.json({
-        message: "Backend MERN đang hoạt động!"
-    });
+  res.status(200).json({
+    message: "Backend MERN đang hoạt động!",
+  });
 });
 
-// =============================
-// Câu 36: GET danh sách sinh viên
-// =============================
+// =========================
+// READ: LẤY DANH SÁCH
+// =========================
 app.get("/api/students", async (req, res) => {
-    try {
-        const students = await Student.find();
-
-        res.status(200).json(students);
-
-    } catch (error) {
-        console.error("Lỗi GET students:", error);
-
-        res.status(500).json({
-            message: "Không thể tải danh sách sinh viên!",
-            error: error.message
-        });
-    }
+  try {
+    const students = await Student.find().sort({ createdAt: -1 });
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Lỗi lấy danh sách sinh viên:", error.message);
+    res.status(500).json({
+      message: "Không thể tải danh sách sinh viên!",
+    });
+  }
 });
 
-// =============================
-// Câu 37: POST thêm sinh viên
-// =============================
+// =========================
+// CREATE: THÊM SINH VIÊN
+// =========================
 app.post("/api/students", async (req, res) => {
-    try {
-        const { studentId, name, email } = req.body;
+  try {
+    const { studentId, name, email } = req.body;
 
-        // Kiểm tra dữ liệu
-        if (!studentId || !name || !email) {
-            return res.status(400).json({
-                message: "Vui lòng nhập đầy đủ MSSV, họ tên và email!"
-            });
-        }
-
-        const student = await Student.create({
-            studentId,
-            name,
-            email
-        });
-
-        res.status(201).json(student);
-
-    } catch (error) {
-        console.error("Lỗi POST students:", error);
-
-        res.status(500).json({
-            message: "Thêm sinh viên thất bại!",
-            error: error.message
-        });
+    if (
+      !studentId?.trim() ||
+      !name?.trim() ||
+      !email?.trim()
+    ) {
+      return res.status(400).json({
+        message: "Vui lòng nhập đầy đủ MSSV, họ tên và email.",
+      });
     }
-});
 
-// =============================
-// Câu 38 + Câu 61:
-// PUT cập nhật sinh viên
-// =============================
-app.put("/api/students/:id", async (req, res) => {
-    try {
-        console.log("=================================");
-        console.log("PUT UPDATE STUDENT");
-        console.log("ID:", req.params.id);
-        console.log("DATA:", req.body);
-
-        // Kiểm tra MongoDB ObjectId
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({
-                message: "ID sinh viên không hợp lệ!"
-            });
-        }
-
-        const { studentId, name, email } = req.body;
-
-        // Kiểm tra dữ liệu
-        if (!studentId || !name || !email) {
-            return res.status(400).json({
-                message: "Vui lòng nhập đầy đủ thông tin sinh viên!"
-            });
-        }
-
-        const student = await Student.findByIdAndUpdate(
-            req.params.id,
-            {
-                studentId: studentId,
-                name: name,
-                email: email
-            },
-            {
-                new: true,
-                runValidators: true
-            }
-        );
-
-        // Không tìm thấy sinh viên
-        if (!student) {
-            return res.status(404).json({
-                message: "Không tìm thấy sinh viên!"
-            });
-        }
-
-        console.log("Cập nhật thành công:", student);
-
-        res.status(200).json(student);
-
-    } catch (error) {
-        console.error("LỖI PUT:", error);
-
-        res.status(500).json({
-            message: "Cập nhật sinh viên thất bại!",
-            error: error.message
-        });
-    }
-});
-
-// =============================
-// Câu 39 + Câu 62:
-// DELETE xóa sinh viên
-// =============================
-app.delete("/api/students/:id", async (req, res) => {
-    try {
-        console.log("=================================");
-        console.log("DELETE STUDENT");
-        console.log("ID:", req.params.id);
-
-        // Kiểm tra ObjectId
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({
-                message: "ID sinh viên không hợp lệ!"
-            });
-        }
-
-        const student = await Student.findByIdAndDelete(
-            req.params.id
-        );
-
-        // Không tìm thấy sinh viên
-        if (!student) {
-            return res.status(404).json({
-                message: "Không tìm thấy sinh viên!"
-            });
-        }
-
-        console.log("Xóa thành công:", student);
-
-        res.status(200).json({
-            message: "Xóa sinh viên thành công!",
-            student: student
-        });
-
-    } catch (error) {
-        console.error("Lỗi DELETE:", error);
-
-        res.status(500).json({
-            message: "Xóa sinh viên thất bại!",
-            error: error.message
-        });
-    }
-});
-
-// =============================
-// Kết nối MongoDB Atlas
-// =============================
-mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log("=================================");
-        console.log("MongoDB Atlas kết nối thành công!");
-        console.log("=================================");
-    })
-    .catch((error) => {
-        console.error("=================================");
-        console.error("LỖI KẾT NỐI MONGODB:");
-        console.error(error.message);
-        console.error("=================================");
+    const existingStudent = await Student.findOne({
+      studentId: studentId.trim(),
     });
 
-// =============================
-// Khởi động Server
-// =============================
-app.listen(PORT, () => {
-    console.log("=================================");
-    console.log(`Server đang chạy tại port ${PORT}`);
-    console.log(`http://localhost:${PORT}`);
-    console.log("=================================");
+    if (existingStudent) {
+      return res.status(409).json({
+        message: "MSSV đã tồn tại!",
+      });
+    }
+
+    const student = await Student.create({
+      studentId: studentId.trim(),
+      name: name.trim(),
+      email: email.trim(),
+    });
+
+    console.log("Đã thêm sinh viên:", student.studentId);
+
+    res.status(201).json({
+      message: "Thêm sinh viên thành công!",
+      student,
+    });
+  } catch (error) {
+    console.error("Lỗi thêm sinh viên:", error.message);
+    res.status(500).json({
+      message: "Không thể thêm sinh viên!",
+    });
+  }
 });
+
+// =========================
+// UPDATE: CẬP NHẬT SINH VIÊN
+// =========================
+app.put("/api/students/:id", async (req, res) => {
+  try {
+    const { name, email, studentId } = req.body;
+
+    const updates = {};
+
+    if (studentId !== undefined) {
+      updates.studentId = studentId.trim();
+    }
+
+    if (name !== undefined) {
+      updates.name = name.trim();
+    }
+
+    if (email !== undefined) {
+      updates.email = email.trim();
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        message: "Không tìm thấy sinh viên!",
+      });
+    }
+
+    console.log("Đã cập nhật sinh viên:", student.studentId);
+
+    res.status(200).json({
+      message: "Cập nhật sinh viên thành công!",
+      student,
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật sinh viên:", error.message);
+    res.status(500).json({
+      message: "Không thể cập nhật sinh viên!",
+    });
+  }
+});
+
+// =========================
+// DELETE: XÓA SINH VIÊN
+// =========================
+app.delete("/api/students/:id", async (req, res) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({
+        message: "Không tìm thấy sinh viên!",
+      });
+    }
+
+    console.log("Đã xóa sinh viên:", student.studentId);
+
+    res.status(200).json({
+      message: "Xóa sinh viên thành công!",
+      student,
+    });
+  } catch (error) {
+    console.error("Lỗi xóa sinh viên:", error.message);
+    res.status(500).json({
+      message: "Không thể xóa sinh viên!",
+    });
+  }
+});
+
+// =========================
+// XỬ LÝ LỖI
+// =========================
+app.use((err, req, res, next) => {
+  if (err.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      message: "Nguồn truy cập không được phép bởi CORS.",
+    });
+  }
+
+  console.error("Lỗi máy chủ:", err.message);
+
+  res.status(500).json({
+    message: "Đã xảy ra lỗi máy chủ.",
+  });
+});
+
+// =========================
+// KẾT NỐI MONGODB ATLAS
+// =========================
+async function startServer() {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("Chưa cấu hình biến môi trường MONGODB_URI.");
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    console.log("Đã kết nối MongoDB Atlas");
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server đang chạy tại port ${PORT}`);
+      console.log("Allowed CORS origins:", allowedOrigins);
+    });
+  } catch (error) {
+    console.error("Không thể khởi động Backend:", error.message);
+    process.exit(1);
+  }
+}
+
+startServer();
