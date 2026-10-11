@@ -7,27 +7,37 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// =========================
-// LOG REQUEST HTTP
-// Đặt trước CORS để ghi nhận cả request bị chặn
-// =========================
+// =====================================
+// 1. LOG REQUEST HTTP
+// Ghi log trước CORS để thấy cả request bị chặn
+// =====================================
 app.use((req, res, next) => {
+  const startTime = Date.now();
+
   console.log(
-    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
+    `[HTTP] ${new Date().toISOString()} ${req.method} ${req.originalUrl}`
   );
+
+  res.on("finish", () => {
+    console.log(
+      `[HTTP] ${req.method} ${req.originalUrl} - ${res.statusCode} - ${Date.now() - startTime}ms`
+    );
+  });
+
   next();
 });
 
-// =========================
-// CẤU HÌNH CORS PRODUCTION
-// =========================
+// =====================================
+// 2. CẤU HÌNH CORS
+// =====================================
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  "https://mern-frontend-237536.onrender.com",
   "http://localhost:5173",
   "http://localhost:3000",
 ]
   .filter(Boolean)
-  .map((url) => url.trim().replace(/\/$/, ""));
+  .map((url) => url.trim().replace(/\/+$/, ""));
 
 app.use(
   cors({
@@ -37,13 +47,13 @@ app.use(
         return callback(null, true);
       }
 
-      const normalizedOrigin = origin.replace(/\/$/, "");
+      const normalizedOrigin = origin.replace(/\/+$/, "");
 
       if (allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
 
-      console.error("CORS blocked origin:", origin);
+      console.error("[CORS] Blocked origin:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -54,9 +64,9 @@ app.use(
 
 app.use(express.json());
 
-// =========================
-// MODEL SINH VIÊN
-// =========================
+// =====================================
+// 3. MODEL SINH VIÊN
+// =====================================
 const studentSchema = new mongoose.Schema(
   {
     studentId: {
@@ -84,9 +94,9 @@ const Student =
   mongoose.models.Student ||
   mongoose.model("Student", studentSchema);
 
-// =========================
-// ROUTE KIỂM TRA BACKEND
-// =========================
+// =====================================
+// 4. ROUTE KIỂM TRA BACKEND
+// =====================================
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Backend MERN đang hoạt động!",
@@ -99,24 +109,28 @@ app.get("/api/hello", (req, res) => {
   });
 });
 
-// =========================
-// READ: LẤY DANH SÁCH SINH VIÊN
-// =========================
+// =====================================
+// 5. READ: LẤY DANH SÁCH SINH VIÊN
+// GET /api/students
+// =====================================
 app.get("/api/students", async (req, res) => {
   try {
     const students = await Student.find().sort({ createdAt: -1 });
-    res.status(200).json(students);
+
+    return res.status(200).json(students);
   } catch (error) {
-    console.error("Lỗi lấy danh sách sinh viên:", error.message);
-    res.status(500).json({
+    console.error("[READ] Lỗi lấy danh sách:", error.message);
+
+    return res.status(500).json({
       message: "Không thể tải danh sách sinh viên!",
     });
   }
 });
 
-// =========================
-// CREATE: THÊM SINH VIÊN
-// =========================
+// =====================================
+// 6. CREATE: THÊM SINH VIÊN
+// POST /api/students
+// =====================================
 app.post("/api/students", async (req, res) => {
   try {
     const { studentId, name, email } = req.body;
@@ -134,8 +148,12 @@ app.post("/api/students", async (req, res) => {
       });
     }
 
+    const cleanStudentId = studentId.trim();
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
     const existingStudent = await Student.findOne({
-      studentId: studentId.trim(),
+      studentId: cleanStudentId,
     });
 
     if (existingStudent) {
@@ -145,31 +163,33 @@ app.post("/api/students", async (req, res) => {
     }
 
     const student = await Student.create({
-      studentId: studentId.trim(),
-      name: name.trim(),
-      email: email.trim(),
+      studentId: cleanStudentId,
+      name: cleanName,
+      email: cleanEmail,
     });
 
-    console.log("Đã thêm sinh viên:", student.studentId);
+    console.log("[CREATE] Đã thêm sinh viên:", student.studentId);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Thêm sinh viên thành công!",
       student,
     });
   } catch (error) {
-    console.error("Lỗi thêm sinh viên:", error.message);
-    res.status(500).json({
+    console.error("[CREATE] Lỗi thêm sinh viên:", error.message);
+
+    return res.status(500).json({
       message: "Không thể thêm sinh viên!",
     });
   }
 });
 
-// =========================
-// UPDATE: CẬP NHẬT SINH VIÊN
-// =========================
+// =====================================
+// 7. UPDATE: CẬP NHẬT SINH VIÊN
+// PUT /api/students/:id
+// =====================================
 app.put("/api/students/:id", async (req, res) => {
   try {
-    const { name, email, studentId } = req.body;
+    const { studentId, name, email } = req.body;
     const updates = {};
 
     if (studentId !== undefined) {
@@ -178,6 +198,7 @@ app.put("/api/students/:id", async (req, res) => {
           message: "MSSV không hợp lệ.",
         });
       }
+
       updates.studentId = studentId.trim();
     }
 
@@ -187,6 +208,7 @@ app.put("/api/students/:id", async (req, res) => {
           message: "Họ tên không hợp lệ.",
         });
       }
+
       updates.name = name.trim();
     }
 
@@ -196,7 +218,14 @@ app.put("/api/students/:id", async (req, res) => {
           message: "Email không hợp lệ.",
         });
       }
+
       updates.email = email.trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        message: "Không có thông tin cần cập nhật.",
+      });
     }
 
     const student = await Student.findByIdAndUpdate(
@@ -214,23 +243,31 @@ app.put("/api/students/:id", async (req, res) => {
       });
     }
 
-    console.log("Đã cập nhật sinh viên:", student.studentId);
+    console.log("[UPDATE] Đã cập nhật sinh viên:", student.studentId);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Cập nhật sinh viên thành công!",
       student,
     });
   } catch (error) {
-    console.error("Lỗi cập nhật sinh viên:", error.message);
-    res.status(500).json({
+    console.error("[UPDATE] Lỗi cập nhật:", error.message);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        message: "ID sinh viên không hợp lệ.",
+      });
+    }
+
+    return res.status(500).json({
       message: "Không thể cập nhật sinh viên!",
     });
   }
 });
 
-// =========================
-// DELETE: XÓA SINH VIÊN
-// =========================
+// =====================================
+// 8. DELETE: XÓA SINH VIÊN
+// DELETE /api/students/:id
+// =====================================
 app.delete("/api/students/:id", async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.id);
@@ -241,23 +278,30 @@ app.delete("/api/students/:id", async (req, res) => {
       });
     }
 
-    console.log("Đã xóa sinh viên:", student.studentId);
+    console.log("[DELETE] Đã xóa sinh viên:", student.studentId);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Xóa sinh viên thành công!",
       student,
     });
   } catch (error) {
-    console.error("Lỗi xóa sinh viên:", error.message);
-    res.status(500).json({
+    console.error("[DELETE] Lỗi xóa sinh viên:", error.message);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        message: "ID sinh viên không hợp lệ.",
+      });
+    }
+
+    return res.status(500).json({
       message: "Không thể xóa sinh viên!",
     });
   }
 });
 
-// =========================
-// XỬ LÝ LỖI CORS VÀ MÁY CHỦ
-// =========================
+// =====================================
+// 9. XỬ LÝ LỖI
+// =====================================
 app.use((err, req, res, next) => {
   if (err.message === "Not allowed by CORS") {
     return res.status(403).json({
@@ -265,16 +309,16 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error("Lỗi máy chủ:", err.message);
+  console.error("[SERVER ERROR]", err.message);
 
-  res.status(500).json({
+  return res.status(500).json({
     message: "Đã xảy ra lỗi máy chủ.",
   });
 });
 
-// =========================
-// KẾT NỐI MONGODB ATLAS
-// =========================
+// =====================================
+// 10. KẾT NỐI MONGODB ATLAS VÀ KHỞI ĐỘNG
+// =====================================
 async function startServer() {
   try {
     if (!process.env.MONGODB_URI) {
@@ -282,6 +326,7 @@ async function startServer() {
     }
 
     await mongoose.connect(process.env.MONGODB_URI);
+
     console.log("Đã kết nối MongoDB Atlas");
 
     app.listen(PORT, "0.0.0.0", () => {
