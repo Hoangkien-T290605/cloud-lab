@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 5000;
 
 // =====================================
 // 1. LOG REQUEST HTTP
-// Ghi log trước CORS để thấy cả request bị chặn
 // =====================================
 app.use((req, res, next) => {
   const startTime = Date.now();
@@ -20,7 +19,9 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     console.log(
-      `[HTTP] ${req.method} ${req.originalUrl} - ${res.statusCode} - ${Date.now() - startTime}ms`
+      `[HTTP] ${req.method} ${req.originalUrl} - ${res.statusCode} - ${
+        Date.now() - startTime
+      }ms`
     );
   });
 
@@ -95,7 +96,19 @@ const Student =
   mongoose.model("Student", studentSchema);
 
 // =====================================
-// 4. ROUTE KIỂM TRA BACKEND
+// 4. HEALTH CHECK - CÂU 44
+// GET /health
+// =====================================
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date(),
+    uptime: process.uptime(),
+  });
+});
+
+// =====================================
+// 5. ROUTE KIỂM TRA BACKEND
 // =====================================
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -110,7 +123,7 @@ app.get("/api/hello", (req, res) => {
 });
 
 // =====================================
-// 5. READ: LẤY DANH SÁCH SINH VIÊN
+// 6. READ: LẤY DANH SÁCH SINH VIÊN
 // GET /api/students
 // =====================================
 app.get("/api/students", async (req, res) => {
@@ -128,7 +141,7 @@ app.get("/api/students", async (req, res) => {
 });
 
 // =====================================
-// 6. CREATE: THÊM SINH VIÊN
+// 7. CREATE: THÊM SINH VIÊN
 // POST /api/students
 // =====================================
 app.post("/api/students", async (req, res) => {
@@ -184,7 +197,7 @@ app.post("/api/students", async (req, res) => {
 });
 
 // =====================================
-// 7. UPDATE: CẬP NHẬT SINH VIÊN
+// 8. UPDATE: CẬP NHẬT SINH VIÊN
 // PUT /api/students/:id
 // =====================================
 app.put("/api/students/:id", async (req, res) => {
@@ -265,7 +278,7 @@ app.put("/api/students/:id", async (req, res) => {
 });
 
 // =====================================
-// 8. DELETE: XÓA SINH VIÊN
+// 9. DELETE: XÓA SINH VIÊN
 // DELETE /api/students/:id
 // =====================================
 app.delete("/api/students/:id", async (req, res) => {
@@ -300,7 +313,7 @@ app.delete("/api/students/:id", async (req, res) => {
 });
 
 // =====================================
-// 9. XỬ LÝ LỖI
+// 10. XỬ LÝ LỖI
 // =====================================
 app.use((err, req, res, next) => {
   if (err.message === "Not allowed by CORS") {
@@ -317,7 +330,7 @@ app.use((err, req, res, next) => {
 });
 
 // =====================================
-// 10. KẾT NỐI MONGODB ATLAS VÀ KHỞI ĐỘNG
+// 11. KẾT NỐI MONGODB ATLAS VÀ KHỞI ĐỘNG
 // =====================================
 async function startServer() {
   try {
@@ -330,7 +343,7 @@ async function startServer() {
     console.log("Đã kết nối MongoDB Atlas");
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server đang chạy tại port ${PORT}`);
+      console.log(`[CI/CD Buoi 6] Server đang chạy tại port ${PORT}`);
       console.log("Allowed CORS origins:", allowedOrigins);
     });
   } catch (error) {

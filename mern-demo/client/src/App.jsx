@@ -2,13 +2,6 @@
 import { useEffect, useState, useCallback } from "react";
 import "./App.css";
 
-// =============================
-// API URL
-// =============================
-const API_URL = (
-  import.meta.env.VITE_API_URL ||
-  "https://mern-backend-237536.onrender.com"
-).replace(/\/+$/, "");
 
 // =============================
 // ICONS
@@ -100,7 +93,7 @@ function App() {
     setListLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/students`);
+      const response = await fetch('/api/students');
       const data = await response.json();
 
       if (!response.ok) {
@@ -166,8 +159,8 @@ function App() {
 
     try {
       const url = isEditing
-        ? `${API_URL}/api/students/${editingId}`
-        : `${API_URL}/api/students`;
+        ? `/api/students/${editingId}`
+        : '/api/students';
 
       const response = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
@@ -271,7 +264,7 @@ function App() {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/students/${id}`, {
+      const response = await fetch(`/api/students/${id}`, {
         method: "DELETE",
       });
 
